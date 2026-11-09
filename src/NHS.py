@@ -1,5 +1,6 @@
 import json
 import csv
+from src.Zoek import Zoekgraaf
 
 
 class NHS:
@@ -12,8 +13,9 @@ class NHS:
         self.incidenten: csv.DictReader[str] = csv.DictReader(open(pad + "/incidents.csv"))
         self.wegMeldingen: csv.DictReader[str] = csv.DictReader(open(pad + "/road_reports.csv"))
         self.verkeersObservaties: csv.DictReader[str] = csv.DictReader(open(pad + "/observed_traffic.csv"))
+        self.stadsGraaf: Zoekgraaf = Zoekgraaf(self.stad)
         self.plan: dict = dict()
 
     def run(self) -> bool:
-
+        print(self.stadsGraaf.Aster("N3", "N4"))
         return True
