@@ -2,7 +2,7 @@ import json
 import csv
 
 
-class ERS:
+class NHS:
     def __init__(self, pad: str):
         pad: str = pad
         stad: dict = json.load(open(pad + "/city_graph.json"))
