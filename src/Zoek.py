@@ -1,4 +1,3 @@
-import copy
 import math
 from operator import contains
 
@@ -34,7 +33,7 @@ class Zoekgraaf:
 
 
 
-    def Aster(self, startKnoop: str, doelKnoop: str) -> list[str]:
+    def aSter(self, startKnoop: str, doelKnoop: str) -> list[str]:
         openSet: dict[str, float] = dict()
         geslotenSet: dict[str, float] = dict()
         ouders: dict[str, str] = dict()
@@ -66,7 +65,7 @@ class Zoekgraaf:
                     klaar = True
                     break
 
-                opvolgerG: float = self.g(q, opvolger)
+                opvolgerG: float = gSet[q] + self.g(q, opvolger)
                 opvolgerF: float = self.h(opvolger, doelKnoop) + opvolgerG
 
                 if contains(gSet.keys(), opvolger) and gSet[opvolger] > opvolgerG:
