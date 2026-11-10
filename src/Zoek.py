@@ -20,9 +20,11 @@ class Zoekgraaf:
 
     def getPad(self, van: str, naar: str, ouders: dict[str, str]) -> list[str]:
         pad: list[str] = [naar]
-        while pad[-1] != van:
+        while pad[-1] != van and len(pad) <= len(ouders) + 1:
             pad.append(ouders[pad[-1]])
         pad.reverse()
+        if pad[0] != van:
+            return []
         return pad
 
     def g(self, van: str, naar: str) -> float:

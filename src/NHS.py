@@ -17,5 +17,5 @@ class NHS:
         self.plan: dict = dict()
 
     def run(self) -> bool:
-        print(self.stadsGraaf.aSter("F1", "P1"))
+        print(self.stadsGraaf.aSter("N19", "N1"))
         return True
