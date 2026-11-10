@@ -1,5 +1,7 @@
 import json
 import csv
+from operator import contains
+
 from src.Zoek import Zoekgraaf
 
 
@@ -19,11 +21,11 @@ class NHS:
 
         self.wegMeldingen: dict[tuple[str, str], list[dict]] = dict()
         for melding in wegMeldingCSV:
-            self.incidenten[(melding["from"], melding["to"])].append(melding)
+            if not contains(self.wegMeldingen, (melding["from"], melding["to"])):
+                self.wegMeldingen[(melding["from"], melding["to"])] = []
+            self.wegMeldingen[(melding["from"], melding["to"])].append(melding)
 
     def run(self) -> bool:
         print(self.stadsGraaf.aSter("N19", "N1"))
 
-        for i in self.wegMeldingen:
-            print(i)
         return True
