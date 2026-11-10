@@ -22,9 +22,10 @@ class Bayes:
 
         self.meldingen: dict[tuple[str, str], list[dict]] = meldingen
         self.wegen: list[tuple[str, str]] = wegen
-        self.condities: dict[tuple[str, str], str]
+        self.condities: dict[tuple[str, str], str] = dict()
 
         self.vulRapportLozen()
+        self.behandelMeldingen()
 
     def conditieZonderRapport(self) -> str:
         kansen: list[float] = []
@@ -85,7 +86,7 @@ class Bayes:
             self.condities[weg] = conditie
             self.condities[(weg[1], weg[0])] = conditie
 
-            return
+        return
 
 
 

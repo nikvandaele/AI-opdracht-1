@@ -3,6 +3,7 @@ import csv
 from operator import contains
 
 from src.Zoek import Zoekgraaf
+from src.Bayes import Bayes
 
 
 class NHS:
@@ -26,6 +27,13 @@ class NHS:
             self.wegMeldingen[(melding["from"], melding["to"])].append(melding)
 
     def run(self) -> bool:
-        print(self.stadsGraaf.aSter("N19", "N1"))
+        print(self.stadsGraaf.aSter("N2", "N1"))
+
+        wegen: list[tuple[str, str]] = []
+        for boog in self.stad["roads"]:
+            wegen.append((boog["from"], boog["to"]))
+
+        bayes: Bayes = Bayes(self.wegKansen, self.wegMeldingen, wegen)
+        print(bayes.condities)
 
         return True
