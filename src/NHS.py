@@ -44,7 +44,7 @@ class NHS:
         bayes: Bayes = Bayes(self.wegKansen, self.wegMeldingen, wegen)
         print(bayes.condities)
 
-        print(np.zeros((3, 10)))
         hmm: HMM = HMM(self.verkeersKansen, self.verkeersObservaties)
+        print(hmm.verkeer)
 
         return True

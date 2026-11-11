@@ -27,24 +27,27 @@ class HMM:
 
         self.verkeer: dict[tuple[str, str], str] = dict()
 
+        self.bepaalVerkeer()
+
     def bepaalVerkeer(self):
         statussen: list[str] = ["Low", "Medium", "High"]
 
         for weg in self.observaties.keys():
-            berekendeStatussen: list[str] = self.viterbi(weg, statussen)
+            berekendeStatussen: list[str] = self.viterbi(self.observaties[weg], statussen)
+            self.verkeer[weg] = berekendeStatussen[-1]
 
-    def viterbi(self, weg: tuple[str, str], statussen: list[str]) -> list[str]:
-        T: int = len(self.observaties[weg])
+    def viterbi(self, observaties: list[int], statussen: list[str]) -> list[str]:
+        T: int = len(observaties)
         N: int = len(statussen)
 
         viterbi_matrix = np.zeros((N, T))
         backpointer = np.zeros((N, T), dtype=int)
 
-        viterbi_matrix[:, 0] = self.initieel * self.emissie[self.observaties[weg][0]]
+        viterbi_matrix[:, 0] = self.initieel * self.emissie[observaties[0]]
 
         for t in range(1, T):
             for j in range(N):
-                toestandsKansen = viterbi_matrix[:, t-1] * self.transitie[:, j] * self.emissie[self.observaties[weg][t], j]
+                toestandsKansen = viterbi_matrix[:, t-1] * self.transitie[:, j] * self.emissie[observaties[t], j]
                 viterbi_matrix[j, t] = np.max(toestandsKansen)
                 backpointer[j, t] = np.argmax(toestandsKansen)
 
