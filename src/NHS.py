@@ -1,11 +1,13 @@
 import json
 import csv
+import math
 from operator import contains
 
 from src.Zoek import Zoekgraaf
 from src.Bayes import Bayes
 from src.HMM import HMM
-import numpy as np
+from src.Hulpverlener import Hulpverlener
+from src.Incident import Incident
 
 
 class NHS:
@@ -14,12 +16,12 @@ class NHS:
         self.stad: dict = json.load(open(pad + "/city_graph.json"))
         self.wegKansen: dict = json.load(open(pad + "/road_probabilities.json"))
         self.verkeersKansen: dict = json.load(open(pad + "/traffic_probabilities.json"))
-        self.hulpverlenerst: csv.DictReader[str] = csv.DictReader(open(pad + "/responders.csv"))
-        self.incidenten: csv.DictReader[str] = csv.DictReader(open(pad + "/incidents.csv"))
+        hulpverlenersCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/responders.csv"))
+        incidentenCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/incidents.csv"))
         wegMeldingCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/road_reports.csv"))
         verkeersObservatieCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/observed_traffic.csv"))
         self.stadsGraaf: Zoekgraaf = Zoekgraaf(self.stad)
-        self.plan: dict = dict()
+        self.rampenPlan: dict = dict()
         self.statistieken: str = ""
 
         self.wegMeldingen: dict[tuple[str, str], list[dict]] = dict()
@@ -34,17 +36,101 @@ class NHS:
                 self.verkeersObservaties[(observatie["from"], observatie["to"])] = dict()
             self.verkeersObservaties[(observatie["from"], observatie["to"])][int(observatie["observation_nr"])] = observatie
 
-    def run(self) -> bool:
-        print(self.stadsGraaf.aSter("N2", "N1"))
+        self.hulpverleners: list[Hulpverlener] = []
+        for hulpverlener in hulpverlenersCSV:
+            self.hulpverleners.append(Hulpverlener(hulpverlener))
 
+        self.incidenten: list[Incident] = []
+        for incident in incidentenCSV:
+            self.incidenten.append(Incident(incident))
+
+    def run(self) -> bool:
         wegen: list[tuple[str, str]] = []
         for boog in self.stad["roads"]:
             wegen.append((boog["from"], boog["to"]))
 
         bayes: Bayes = Bayes(self.wegKansen, self.wegMeldingen, wegen)
-        print(bayes.condities)
-
         hmm: HMM = HMM(self.verkeersKansen, self.verkeersObservaties)
-        print(hmm.verkeer)
+
+        for weg in hmm.verkeer.keys():
+            match hmm.verkeer[weg]:
+                case "High":
+                    self.stadsGraaf.bogen[weg]["speed"] *= 2/3
+                case "Medium":
+                    self.stadsGraaf.bogen[weg]["speed"] *= 0.9
+
+        for weg in bayes.condities.keys():
+            match bayes.condities[weg]:
+                case "Blocked":
+                    self.stadsGraaf.bogen.pop(weg)
+                case "Congested":
+                    self.stadsGraaf.bogen[weg]["speed"] *= 2/3
+
+        laatsteDeadline: int = 0
+        for incident in self.incidenten:
+            if incident.deadline > laatsteDeadline:
+                laatsteDeadline = incident.deadline
+
+        teBehandelenIncidenten: list[list[Incident]] = [[], [], [], []]
+
+        for tijd in range(laatsteDeadline + 1):
+            for incident in self.incidenten:
+                if incident.tijd == tijd:
+                    teBehandelenIncidenten[incident.prioriteit].append(incident)
+
+            teBehandelenIncidenten = self.plan(teBehandelenIncidenten, tijd)
+
+            for hulpverlener in self.hulpverleners:
+                if hulpverlener.drukTot <= tijd:
+                    hulpverlener.beschikbaar = True
 
         return True
+
+    def plan(self, incidenten: list[list[Incident]], tijd: int) -> list[list[Incident]]:
+        overschot: list[list[Incident]] = [[], [], [], []]
+        for i in range(len(incidenten)):
+            beschikbareHulpverleners: list[list[tuple[int, int]]] = []
+            for j in range(len(incidenten[i])):
+                beschikbareHulpverleners.append([])
+                for k in range(len(self.hulpverleners)):
+                    if contains(self.hulpverleners[k].diensten, incidenten[i][j].type) and self.hulpverleners[k].beschikbaar:
+                        aankomstOverschot: int = incidenten[i][j].deadline - (tijd + self.stadsGraaf.aSter(self.hulpverleners[k].locatie, incidenten[i][j].locatie)[1])
+                        if aankomstOverschot >= 0:
+                            beschikbareHulpverleners[j].append((k, aankomstOverschot))
+
+            while len(incidenten[i]) != 0:
+                gekozenIncident: int = 0
+                vroegsteDeadline: int = incidenten[i][0].deadline
+                for j in range(len(incidenten[i])):
+                    if incidenten[i][j].deadline < vroegsteDeadline:
+                        vroegsteDeadline = incidenten[i][j].deadline
+                        gekozenIncident = j
+
+                if len(beschikbareHulpverleners[gekozenIncident]) != 0:
+                    gekozenHulpverlener: int = beschikbareHulpverleners[gekozenIncident][0][0]
+                    grootsteMarge: int = beschikbareHulpverleners[gekozenIncident][0][1]
+                    for j in range(len(beschikbareHulpverleners[gekozenIncident])):
+                        if beschikbareHulpverleners[gekozenIncident][j][1] > grootsteMarge:
+                            grootsteMarge = beschikbareHulpverleners[gekozenIncident][j][1]
+                            gekozenHulpverlener = beschikbareHulpverleners[gekozenIncident][j][0]
+
+                    self.hulpverleners[gekozenHulpverlener].beschikbaar = False
+                    self.hulpverleners[gekozenHulpverlener].drukTot = (incidenten[i][gekozenIncident].deadline - grootsteMarge) + incidenten[i][gekozenIncident].tijdsduur
+
+                    incidenten[i].pop(gekozenIncident)
+                    beschikbareHulpverleners.pop(gekozenIncident)
+
+                    teVerwijderen: list[tuple[int, tuple[int, int]]] = []
+                    for j in range(len(beschikbareHulpverleners)):
+                        for h in beschikbareHulpverleners[j]:
+                            if h[0] == gekozenHulpverlener:
+                                teVerwijderen.append((j, h))
+
+                    for v in teVerwijderen:
+                        beschikbareHulpverleners[v[0]].remove(v[1])
+                else:
+                    overschot[i].append(incidenten[i][gekozenIncident])
+                    incidenten[i].pop(gekozenIncident)
+                    beschikbareHulpverleners.pop(gekozenIncident)
+
+        return overschot

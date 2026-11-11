@@ -19,6 +19,8 @@ class Zoekgraaf:
         return math.sqrt(((knoop1[0] - knoop2[0])**2) + ((knoop1[1] - knoop2[1])**2))
 
     def getPad(self, van: str, naar: str, ouders: dict[str, str]) -> list[str]:
+        if not contains(ouders.keys(), naar):
+            return []
         pad: list[str] = [naar]
         while pad[-1] != van and len(pad) <= len(ouders) + 1:
             pad.append(ouders[pad[-1]])
@@ -26,6 +28,14 @@ class Zoekgraaf:
         if pad[0] != van:
             return []
         return pad
+
+    def getReistijd(self, pad: list[str]) -> int:
+        reistijd: float = 0
+
+        for i in range(len(pad) - 1):
+            reistijd += self.bogen[(pad[i], pad[i+1])]["distance"] / self.bogen[(pad[i], pad[i+1])]["speed"]
+
+        return math.ceil(reistijd)
 
     def g(self, van: str, naar: str) -> float:
         kost: float = math.inf
@@ -35,7 +45,7 @@ class Zoekgraaf:
 
 
 
-    def aSter(self, startKnoop: str, doelKnoop: str) -> list[str]:
+    def aSter(self, startKnoop: str, doelKnoop: str) -> tuple[list[str], int]:
         openSet: dict[str, float] = dict()
         geslotenSet: dict[str, float] = dict()
         ouders: dict[str, str] = dict()
@@ -86,7 +96,9 @@ class Zoekgraaf:
 
             geslotenSet[q] = laagsteF
 
-        return self.getPad(startKnoop, doelKnoop, ouders)
+        pad: list[str] = self.getPad(startKnoop, doelKnoop, ouders)
+
+        return pad, self.getReistijd(pad)
 
 
 
