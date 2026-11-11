@@ -4,6 +4,8 @@ from operator import contains
 
 from src.Zoek import Zoekgraaf
 from src.Bayes import Bayes
+from src.HMM import HMM
+import numpy as np
 
 
 class NHS:
@@ -15,7 +17,7 @@ class NHS:
         self.hulpverlenerst: csv.DictReader[str] = csv.DictReader(open(pad + "/responders.csv"))
         self.incidenten: csv.DictReader[str] = csv.DictReader(open(pad + "/incidents.csv"))
         wegMeldingCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/road_reports.csv"))
-        self.verkeersObservaties: csv.DictReader[str] = csv.DictReader(open(pad + "/observed_traffic.csv"))
+        verkeersObservatieCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/observed_traffic.csv"))
         self.stadsGraaf: Zoekgraaf = Zoekgraaf(self.stad)
         self.plan: dict = dict()
         self.statistieken: str = ""
@@ -26,6 +28,12 @@ class NHS:
                 self.wegMeldingen[(melding["from"], melding["to"])] = []
             self.wegMeldingen[(melding["from"], melding["to"])].append(melding)
 
+        self.verkeersObservaties: dict[tuple[str, str], dict[int, dict]] = dict()
+        for observatie in verkeersObservatieCSV:
+            if not contains(self.verkeersObservaties, (observatie["from"], observatie["to"])):
+                self.verkeersObservaties[(observatie["from"], observatie["to"])] = dict()
+            self.verkeersObservaties[(observatie["from"], observatie["to"])][int(observatie["observation_nr"])] = observatie
+
     def run(self) -> bool:
         print(self.stadsGraaf.aSter("N2", "N1"))
 
@@ -35,5 +43,8 @@ class NHS:
 
         bayes: Bayes = Bayes(self.wegKansen, self.wegMeldingen, wegen)
         print(bayes.condities)
+
+        print(np.zeros((3, 10)))
+        hmm: HMM = HMM(self.verkeersKansen, self.verkeersObservaties)
 
         return True
