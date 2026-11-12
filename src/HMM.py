@@ -33,12 +33,18 @@ class HMM:
         self.vulRaportLozen()
         self.bepaalVerkeer()
 
+    """
+    gebruikt de initiële kansen om de wegen zonder info over verkeersdrukte een drukte toe te schrijven
+    """
     def vulRaportLozen(self) -> None:
         statussen: list[str] = ["Low", "Medium", "High"]
         for weg in self.wegen:
             if not contains(self.observaties.keys(), weg):
                 self.verkeer[weg] = statussen[self.initieel.argmax()]
 
+    """
+    gebruikt viterbi om de waarschijnlijkste verkeersdrukte bij de meest recente observatie te bepalen
+    """
     def bepaalVerkeer(self):
         statussen: list[str] = ["Low", "Medium", "High"]
 
@@ -46,6 +52,9 @@ class HMM:
             berekendeStatussen: list[str] = self.viterbi(self.observaties[weg], statussen)
             self.verkeer[weg] = berekendeStatussen[-1]
 
+    """
+    bepaald de meest waarschijnlijke verkeersdruktes voor een reeks observaties
+    """
     def viterbi(self, observaties: list[int], statussen: list[str]) -> list[str]:
         T: int = len(observaties)
         N: int = len(statussen)

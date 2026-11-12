@@ -46,6 +46,9 @@ class NHS:
 
         self.statistieken: Stats = Stats(len(self.incidenten))
 
+    """
+    het eigelijke programma, roept bayes en hmm op en doorloopt dan in een evenementlus de simulatie
+    """
     def run(self) -> bool:
         wegen: list[tuple[str, str]] = []
         for boog in self.stad["roads"]:
@@ -76,6 +79,8 @@ class NHS:
         teBehandelenIncidenten: list[list[Incident]] = [[], [], [], []]
 
         for tijd in range(laatsteDeadline + 1):
+
+            # we plaatsen de net beschikbaar geworden incidenten in lijsten die oivereenkomen met hun prioriteitsniveau
             for incident in self.incidenten:
                 if incident.tijd == tijd:
                     teBehandelenIncidenten[incident.prioriteit].append(incident)
@@ -91,20 +96,29 @@ class NHS:
 
         return True
 
+    """
+    dit is de allocatie functie,
+    """
     def plan(self, incidenten: list[list[Incident]], tijd: int) -> list[list[Incident]]:
         overschot: list[list[Incident]] = [[], [], [], []]
+
+        #loopt over de 4 prioriteitsklasses
         for i in range(len(incidenten)):
             beschikbareHulpverleners: list[list[tuple[int, int, list[str]]]] = []
+
+            #loopt over de incidenten in de prioriteitsklasse
             for j in range(len(incidenten[i])):
-                beschikbareHulpverleners.append([])
-                for k in range(len(self.hulpverleners)):
-                    if contains(self.hulpverleners[k].diensten, incidenten[i][j].type) and self.hulpverleners[k].beschikbaar:
-                        zoekresultaat: tuple[list[str], int] = self.stadsGraaf.aSter(self.hulpverleners[k].locatie, incidenten[i][j].locatie)
-                        aankomstOverschot: int = incidenten[i][j].deadline - (tijd + zoekresultaat[1])
-                        if aankomstOverschot >= 0 and len(zoekresultaat[0]) != 0:
-                            beschikbareHulpverleners[j].append((k, aankomstOverschot, zoekresultaat[0]))
+                beschikbareHulpverleners.append([])                                                                                             #
+                for k in range(len(self.hulpverleners)):                                                                                        # we lopen over alle hulpverleners
+                    if contains(self.hulpverleners[k].diensten, incidenten[i][j].type) and self.hulpverleners[k].beschikbaar:                   # we checken of de hulverlener het incident kan afhandelen en of die beschikbaar is
+                        zoekresultaat: tuple[list[str], int] = self.stadsGraaf.aSter(self.hulpverleners[k].locatie, incidenten[i][j].locatie)   # we vinden het pad
+                        aankomstOverschot: int = incidenten[i][j].deadline - (tijd + zoekresultaat[1])                                          # we bepalen hoeveel voor de deadline de hulpverlener zou aankomen
+                        if aankomstOverschot >= 0 and len(zoekresultaat[0]) != 0:                                                               # we checken of de hulpverlener er op tijd geraakt en of het pad überhaupt bestaat
+                            beschikbareHulpverleners[j].append((k, aankomstOverschot, zoekresultaat[0]))                                        #
 
             while len(incidenten[i]) != 0:
+
+                # we vinden de broegste deadline
                 gekozenIncident: int = 0
                 vroegsteDeadline: int = incidenten[i][0].deadline
                 for j in range(len(incidenten[i])):
@@ -112,7 +126,10 @@ class NHS:
                         vroegsteDeadline = incidenten[i][j].deadline
                         gekozenIncident = j
 
+                # we checken of er überhaupt hulpverlers gevonden zijn die op tij kunnen komen helpen
                 if len(beschikbareHulpverleners[gekozenIncident]) != 0:
+
+                    # we kiezen de hulpverlener die er er eerst geraakt
                     gekozenHulpverlener: int = beschikbareHulpverleners[gekozenIncident][0][0]
                     grootsteMarge: int = beschikbareHulpverleners[gekozenIncident][0][1]
                     gekozenPad: list[str] = beschikbareHulpverleners[gekozenIncident][0][2]
@@ -144,6 +161,7 @@ class NHS:
                     for v in teVerwijderen:
                         beschikbareHulpverleners[v[0]].remove(v[1])
                 else:
+                    # we zorgen ervoor dat die incidenten die geen hulpverlener aangewezen konden krijgen volgende tick terug kunnen komen om opnieuw te proberen
                     overschot[i].append(incidenten[i][gekozenIncident])
                     incidenten[i].pop(gekozenIncident)
                     beschikbareHulpverleners.pop(gekozenIncident)

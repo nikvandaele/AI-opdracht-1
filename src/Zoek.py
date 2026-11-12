@@ -12,12 +12,18 @@ class Zoekgraaf:
         for boog in graaf["roads"]:
             self.bogen[(boog["from"], boog["to"])] = boog
 
+    """
+    euclidische afstandsheuristiek
+    """
     def h(self, knoop1: str, knoop2: str) -> float:
         return self.aftstand((self.knopen[knoop1]["x"], self.knopen[knoop1]["y"]), (self.knopen[knoop2]["x"], self.knopen[knoop2]["y"]))/22.5
 
     def aftstand(self, knoop1: tuple[int, int], knoop2: tuple[int, int]) -> float:
         return math.sqrt(((knoop1[0] - knoop2[0])**2) + ((knoop1[1] - knoop2[1])**2))
 
+    """
+    vind aan de hand van een predecessor graaf (ouders) het pad van van naar naar
+    """
     def getPad(self, van: str, naar: str, ouders: dict[str, str]) -> list[str]:
         if not contains(ouders.keys(), naar):
             return []
@@ -29,6 +35,9 @@ class Zoekgraaf:
             return []
         return pad
 
+    """
+    vind de reistijd van een pad
+    """
     def getReistijd(self, pad: list[str]) -> int:
         reistijd: float = 0
 
@@ -37,6 +46,9 @@ class Zoekgraaf:
 
         return math.ceil(reistijd)
 
+    """
+    geeft de kost/reistijd van van naar naar als van en naar  rechtstreeks verbonden zijn met een boog, anders geeft het oneindig
+    """
     def g(self, van: str, naar: str) -> float:
         kost: float = math.inf
         if contains(self.bogen.keys(), (van, naar)):
@@ -44,7 +56,9 @@ class Zoekgraaf:
         return kost
 
 
-
+    """
+    A* zoekalgoritme
+    """
     def aSter(self, startKnoop: str, doelKnoop: str) -> tuple[list[str], int]:
         if startKnoop == doelKnoop:
             return [startKnoop], 0

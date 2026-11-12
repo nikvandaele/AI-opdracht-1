@@ -27,6 +27,9 @@ class Bayes:
         self.vulRapportLozen()
         self.behandelMeldingen()
 
+    """
+    bepaald wat de meest waarschijnlijke wegconditie is als we geen info hebben over de omstandigheden aan de weg adhv de prior weerkansen en de kansen gegeven het weer
+    """
     def conditieZonderRapport(self) -> str:
         kansen: list[float] = []
         condities: list[str] = ["Open", "Congested", "Blocked"]
@@ -44,6 +47,9 @@ class Bayes:
 
         return condities[min(grootsteKansIndices)]
 
+    """
+    geeft de wegen zonder info over omstandigheden met de meest waarschijnlijke wegconditie
+    """
     def vulRapportLozen(self) -> None:
         conditie: str = self.conditieZonderRapport()
 
@@ -52,6 +58,9 @@ class Bayes:
                 self.condities[weg] = conditie
         return
 
+    """
+    voert bayesiaanse inferentie uit op de meldingen per weg en bepaalt de meest waarschijnlijke conditie
+    """
     def behandelMeldingen(self) -> None:
         slaOver: list[tuple[str, str]] = []
         condities: list[str] = ["Open", "Congested", "Blocked"]
