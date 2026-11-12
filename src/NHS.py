@@ -64,7 +64,7 @@ class NHS:
         for weg in bayes.condities.keys():
             match bayes.condities[weg]:
                 case "Blocked":
-                    self.stadsGraaf.bogen.pop(weg)
+                    self.stadsGraaf.bogen.pop(weg, None)
                 case "Congested":
                     self.stadsGraaf.bogen[weg]["speed"] *= 2/3
 
@@ -87,7 +87,7 @@ class NHS:
                     hulpverlener.beschikbaar = True
 
         open(self.pad + "/plan.json", "w").write(json.dumps(self.rampenPlan))
-        self.statistieken.schrijfWeg(self.pad + "/statisticts.txt")
+        self.statistieken.schrijfWeg(self.pad + "/statistics.txt")
 
         return True
 

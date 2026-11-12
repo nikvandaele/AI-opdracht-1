@@ -62,7 +62,7 @@ class Bayes:
 
             slaOver.append((weg[1], weg[0]))
 
-            verenigdeMeldingen: list[dict] = self.meldingen[weg] + self.meldingen[(weg[1], weg[0])]
+            verenigdeMeldingen: list[dict] = self.meldingen.get(weg, []) + self.meldingen.get((weg[1], weg[0]), [])
 
             prior = self.weerGebaseerdeWegStatus[verenigdeMeldingen[0]["weather"]]
 
