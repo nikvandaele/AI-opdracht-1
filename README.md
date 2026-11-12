@@ -1,8 +1,8 @@
 # AI opdracht 1:
 ___
-om de requirements te installeren run:
+om de vereisten te installeren run:
 
-    pip install -r requirements.txt
+    pip install -r vereisten.txt
 ___
 roep het programma op met:
 
