@@ -46,6 +46,8 @@ class Zoekgraaf:
 
 
     def aSter(self, startKnoop: str, doelKnoop: str) -> tuple[list[str], int]:
+        if startKnoop == doelKnoop:
+            return [startKnoop], 0
         openSet: dict[str, float] = dict()
         geslotenSet: dict[str, float] = dict()
         ouders: dict[str, str] = dict()

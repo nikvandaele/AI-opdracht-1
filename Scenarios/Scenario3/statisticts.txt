@@ -1,0 +1,4 @@
+Statistieken:
+
+14 incidenten afgehandeld door 8 verschillende hulpverleners.
+Met een gemiddelde responstijd van 762.3s en een op-tijd-percentage van 70.0%.

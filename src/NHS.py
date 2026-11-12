@@ -8,6 +8,7 @@ from src.Bayes import Bayes
 from src.HMM import HMM
 from src.Hulpverlener import Hulpverlener
 from src.Incident import Incident
+from src.Stats import Stats
 
 
 class NHS:
@@ -21,8 +22,7 @@ class NHS:
         wegMeldingCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/road_reports.csv"))
         verkeersObservatieCSV: csv.DictReader[str] = csv.DictReader(open(pad + "/observed_traffic.csv"))
         self.stadsGraaf: Zoekgraaf = Zoekgraaf(self.stad)
-        self.rampenPlan: dict = dict()
-        self.statistieken: str = ""
+        self.rampenPlan: list[dict] = []
 
         self.wegMeldingen: dict[tuple[str, str], list[dict]] = dict()
         for melding in wegMeldingCSV:
@@ -43,6 +43,8 @@ class NHS:
         self.incidenten: list[Incident] = []
         for incident in incidentenCSV:
             self.incidenten.append(Incident(incident))
+
+        self.statistieken: Stats = Stats(len(self.incidenten))
 
     def run(self) -> bool:
         wegen: list[tuple[str, str]] = []
@@ -84,19 +86,23 @@ class NHS:
                 if hulpverlener.drukTot <= tijd:
                     hulpverlener.beschikbaar = True
 
+        open(self.pad + "/plan.json", "w").write(json.dumps(self.rampenPlan))
+        self.statistieken.schrijfWeg(self.pad + "/statisticts.txt")
+
         return True
 
     def plan(self, incidenten: list[list[Incident]], tijd: int) -> list[list[Incident]]:
         overschot: list[list[Incident]] = [[], [], [], []]
         for i in range(len(incidenten)):
-            beschikbareHulpverleners: list[list[tuple[int, int]]] = []
+            beschikbareHulpverleners: list[list[tuple[int, int, list[str]]]] = []
             for j in range(len(incidenten[i])):
                 beschikbareHulpverleners.append([])
                 for k in range(len(self.hulpverleners)):
                     if contains(self.hulpverleners[k].diensten, incidenten[i][j].type) and self.hulpverleners[k].beschikbaar:
-                        aankomstOverschot: int = incidenten[i][j].deadline - (tijd + self.stadsGraaf.aSter(self.hulpverleners[k].locatie, incidenten[i][j].locatie)[1])
-                        if aankomstOverschot >= 0:
-                            beschikbareHulpverleners[j].append((k, aankomstOverschot))
+                        zoekresultaat: tuple[list[str], int] = self.stadsGraaf.aSter(self.hulpverleners[k].locatie, incidenten[i][j].locatie)
+                        aankomstOverschot: int = incidenten[i][j].deadline - (tijd + zoekresultaat[1])
+                        if aankomstOverschot >= 0 and len(zoekresultaat[0]) != 0:
+                            beschikbareHulpverleners[j].append((k, aankomstOverschot, zoekresultaat[0]))
 
             while len(incidenten[i]) != 0:
                 gekozenIncident: int = 0
@@ -109,6 +115,7 @@ class NHS:
                 if len(beschikbareHulpverleners[gekozenIncident]) != 0:
                     gekozenHulpverlener: int = beschikbareHulpverleners[gekozenIncident][0][0]
                     grootsteMarge: int = beschikbareHulpverleners[gekozenIncident][0][1]
+                    gekozenPad: list[str] = beschikbareHulpverleners[gekozenIncident][0][2]
                     for j in range(len(beschikbareHulpverleners[gekozenIncident])):
                         if beschikbareHulpverleners[gekozenIncident][j][1] > grootsteMarge:
                             grootsteMarge = beschikbareHulpverleners[gekozenIncident][j][1]
@@ -116,6 +123,13 @@ class NHS:
 
                     self.hulpverleners[gekozenHulpverlener].beschikbaar = False
                     self.hulpverleners[gekozenHulpverlener].drukTot = (incidenten[i][gekozenIncident].deadline - grootsteMarge) + incidenten[i][gekozenIncident].tijdsduur
+                    self.hulpverleners[gekozenHulpverlener].locatie = incidenten[i][gekozenIncident].locatie
+
+                    self.rampenPlan.append({"responder_id" : self.hulpverleners[gekozenHulpverlener].id, "incident_id" : incidenten[i][gekozenIncident].id,
+                                            "path" : gekozenPad, "time" : tijd})
+                    self.statistieken.incidenten += 1
+                    self.statistieken.hulpverleners.add(self.hulpverleners[gekozenHulpverlener].id)
+                    self.statistieken.responsTijden.append(incidenten[i][gekozenIncident].deadline - grootsteMarge - incidenten[i][gekozenIncident].tijd)
 
                     incidenten[i].pop(gekozenIncident)
                     beschikbareHulpverleners.pop(gekozenIncident)
