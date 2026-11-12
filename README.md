@@ -15,3 +15,7 @@ waar scenariopad het pad naar het scenario is bv.
 voor het bijgeleverde `Scenario1`
 ___
 de outputfiles `plan.json` en `statistics.txt` worden in de scenariomap geplaatst
+___
+om de testen uit te voeren run je:
+
+    pytest
