@@ -10,7 +10,7 @@ roep het programma op met:
 
 waar scenariopad het pad naar het scenario is bv.
 
-    python3 run.py Scenario/Scenario1
+    python3 run.py Scenarios/Scenario1
 
 voor het bijgeleverde `Scenario1`
 ___
