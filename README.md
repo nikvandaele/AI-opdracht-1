@@ -12,6 +12,6 @@ waar scenariopad het pad naar het scenario is bv.
 
     python3 run.py Scenario/Scenario1
 
-voor het meegeleverde `Scenario1`
+voor het bijgeleverde `Scenario1`
 ___
 de outputfiles `plan.json` en `statistics.txt` worden in de scenariomap geplaatst
