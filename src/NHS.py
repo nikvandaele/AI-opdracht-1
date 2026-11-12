@@ -52,7 +52,7 @@ class NHS:
             wegen.append((boog["from"], boog["to"]))
 
         bayes: Bayes = Bayes(self.wegKansen, self.wegMeldingen, wegen)
-        hmm: HMM = HMM(self.verkeersKansen, self.verkeersObservaties)
+        hmm: HMM = HMM(self.verkeersKansen, self.verkeersObservaties, wegen)
 
         for weg in hmm.verkeer.keys():
             match hmm.verkeer[weg]:

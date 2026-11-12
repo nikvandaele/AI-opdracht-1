@@ -1,7 +1,8 @@
+from operator import contains
 import numpy as np
 
 class HMM:
-    def __init__(self, kansen: dict, observaties: dict[tuple[str, str], dict[int, dict]]):
+    def __init__(self, kansen: dict, observaties: dict[tuple[str, str], dict[int, dict]], wegen: list[tuple[str, str]]):
         self.initieel = np.array([kansen["initial"]["Low"], kansen["initial"]["Medium"], kansen["initial"]["High"]])
 
         self.transitie = np.array([[kansen["transition"]["Low"]["Low"], kansen["transition"]["Low"]["Medium"], kansen["transition"]["Low"]["High"]],
@@ -13,6 +14,8 @@ class HMM:
                                  [kansen["emission"]["High"]["Low"], kansen["emission"]["High"]["Medium"], kansen["emission"]["High"]["High"]]])
 
         self.observaties: dict[tuple[str, str], list[int]] = dict()
+
+        self.wegen: list[tuple[str, str]] = wegen
 
         for weg in observaties.keys():
             self.observaties[weg] = []
@@ -27,7 +30,14 @@ class HMM:
 
         self.verkeer: dict[tuple[str, str], str] = dict()
 
+        self.vulRaportLozen()
         self.bepaalVerkeer()
+
+    def vulRaportLozen(self) -> None:
+        statussen: list[str] = ["Low", "Medium", "High"]
+        for weg in self.wegen:
+            if not contains(self.observaties.keys(), weg):
+                self.verkeer[weg] = statussen[self.initieel.argmax()]
 
     def bepaalVerkeer(self):
         statussen: list[str] = ["Low", "Medium", "High"]

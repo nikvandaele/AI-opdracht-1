@@ -53,6 +53,7 @@ def test_astar_onbereikbaar(test_graaf_data):
     graaf.bogen.pop(("C", "D"))
     pad, tijd = graaf.aSter("A", "D")
     assert pad == []
+    assert tijd == 0
 
 
 # --- 2. TESTS VOOR BAYESIAN REASONING ---
@@ -113,8 +114,10 @@ def test_hmm_viterbi():
             3: {"traffic_observation": "High"}
         }
     }
-    hmm = HMM(kansen, observaties)
+    wegen = [("A", "B"), ("B", "C")]
+    hmm = HMM(kansen, observaties, wegen)
     assert hmm.verkeer[("A", "B")] == "High"
+    assert hmm.verkeer[("B", "C")] == "Low"
 
 
 # --- 4. INTEGRATIE- EN PLANVALIDATIE TEST ---
