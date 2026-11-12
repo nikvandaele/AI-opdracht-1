@@ -128,13 +128,14 @@ class NHS:
                     self.rampenPlan.append({"responder_id" : self.hulpverleners[gekozenHulpverlener].id, "incident_id" : incidenten[i][gekozenIncident].id,
                                             "path" : gekozenPad, "time" : tijd})
                     self.statistieken.incidenten += 1
+                    self.statistieken.incidentenPerPrio[i] += 1
                     self.statistieken.hulpverleners.add(self.hulpverleners[gekozenHulpverlener].id)
                     self.statistieken.responsTijden.append(incidenten[i][gekozenIncident].deadline - grootsteMarge - incidenten[i][gekozenIncident].tijd)
 
                     incidenten[i].pop(gekozenIncident)
                     beschikbareHulpverleners.pop(gekozenIncident)
 
-                    teVerwijderen: list[tuple[int, tuple[int, int]]] = []
+                    teVerwijderen: list[tuple[int, tuple[int, int, list[str]]]] = []
                     for j in range(len(beschikbareHulpverleners)):
                         for h in beschikbareHulpverleners[j]:
                             if h[0] == gekozenHulpverlener:

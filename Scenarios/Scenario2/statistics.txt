@@ -1,4 +1,4 @@
 Statistieken:
 
-9 incidenten afgehandeld door 7 verschillende hulpverleners.
+9 (6 critical, 2 high, 1 medium, 0 low) incidenten afgehandeld door 7 verschillende hulpverleners.
 Met een gemiddelde responstijd van 35.1s en een op-tijd-percentage van 75.0%.

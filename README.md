@@ -1,4 +1,4 @@
-# AI opdrach 1:
+# AI opdracht 1:
 ___
 om de requirements te installeren run:
 
